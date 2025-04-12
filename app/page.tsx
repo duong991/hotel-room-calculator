@@ -57,15 +57,15 @@ export default function HomePage() {
         const [startHour, startMin] = startTime.split(":").map(Number);
         const [endHour, endMin] = endTime.split(":").map(Number);
 
-        let start = startHour * 60 + startMin;
-        let end = endHour * 60 + endMin;
+        const start = startHour * 60 + startMin;
+        const end = endHour * 60 + endMin;
 
         if (end <= start) {
             alert("Giờ kết thúc phải lớn hơn giờ bắt đầu.");
             return;
         }
 
-        let duration = end - start;
+        const duration = end - start;
 
         const hours = Math.floor(duration / 60);
         const minutes = duration % 60;
