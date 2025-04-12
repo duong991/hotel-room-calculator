@@ -1,103 +1,179 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+export default function HomePage() {
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("");
+    const [isAirConditioned, setIsAirConditioned] = useState(false);
+    const [result, setResult] = useState<null | {
+        totalMinutes: number;
+        hours: number;
+        minutes: number;
+        firstHourPrice: number;
+        nextHourPrice: number;
+        remainingHours: number;
+        total: number;
+    }>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    const getCurrentTimeString = () => {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, "0");
+        const minutes = now.getMinutes().toString().padStart(2, "0");
+        return `${hours}:${minutes}`;
+    };
+
+    useEffect(() => {
+        setEndTime(getCurrentTimeString());
+    }, []);
+
+    const handleStartTimeChange = (value: string) => {
+        const [startHour, startMin] = value.split(":").map(Number);
+        const [endHour, endMin] = endTime.split(":").map(Number);
+
+        const start = startHour * 60 + startMin;
+        const end = endHour * 60 + endMin;
+
+        let newEndTime = endTime;
+        if (start >= end) {
+            const newEnd = start + 10;
+            const hours = Math.floor(newEnd / 60) % 24;
+            const minutes = newEnd % 60;
+            newEndTime = `${hours.toString().padStart(2, "0")}:${minutes
+                .toString()
+                .padStart(2, "0")}`;
+            setEndTime(newEndTime);
+        }
+
+        setStartTime(value);
+    };
+
+    const resetEndTime = () => {
+        setEndTime(getCurrentTimeString());
+    };
+
+    const calculatePrice = () => {
+        if (!startTime || !endTime) return;
+
+        const [startHour, startMin] = startTime.split(":").map(Number);
+        const [endHour, endMin] = endTime.split(":").map(Number);
+
+        let start = startHour * 60 + startMin;
+        let end = endHour * 60 + endMin;
+
+        if (end <= start) {
+            alert("Giờ kết thúc phải lớn hơn giờ bắt đầu.");
+            return;
+        }
+
+        let duration = end - start;
+
+        const hours = Math.floor(duration / 60);
+        const minutes = duration % 60;
+
+        const totalHoursForPricing = Math.ceil(duration / 60);
+        const firstHourPrice = isAirConditioned ? 50000 : 40000;
+        const nextHourPrice = isAirConditioned ? 15000 : 10000;
+        const remainingHours = Math.max(0, totalHoursForPricing - 1);
+        const total = firstHourPrice + remainingHours * nextHourPrice;
+
+        setResult({
+            totalMinutes: duration,
+            hours,
+            minutes,
+            firstHourPrice,
+            nextHourPrice,
+            remainingHours,
+            total,
+        });
+    };
+
+    return (
+        <main className="max-w-md mx-auto mt-10 p-4 bg-white rounded-xl shadow space-y-4 text-gray-900 text-[15px] leading-relaxed">
+            <h1 className="text-xl sm:text-2xl font-bold text-center">
+                Tính tiền phòng nghỉ (theo giờ)
+            </h1>
+
+            <div className="space-y-4 text-base">
+                <label className="block">
+                    Giờ bắt đầu nghỉ:
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="time"
+                            value={startTime}
+                            onChange={(e) =>
+                                handleStartTimeChange(e.target.value)
+                            }
+                            className="w-full mt-1 p-2 border rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            onClick={() => setStartTime("")}
+                            className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
+                        >
+                            Xóa giờ
+                        </button>
+                    </div>
+                </label>
+
+                <label className="block">
+                    Giờ kết thúc nghỉ:
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="time"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                            className="w-full p-2 border rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            onClick={resetEndTime}
+                            className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
+                        >
+                            Lấy giờ hiện tại
+                        </button>
+                    </div>
+                </label>
+
+                <label className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        checked={isAirConditioned}
+                        onChange={(e) => setIsAirConditioned(e.target.checked)}
+                    />
+                    <span>Phòng có điều hòa</span>
+                </label>
+
+                <button
+                    onClick={calculatePrice}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                >
+                    Tính tiền
+                </button>
+            </div>
+
+            {result && (
+                <div className="pt-4 border-t space-y-2 text-base">
+                    <p>
+                        <strong>Tổng thời gian nghỉ:</strong>{" "}
+                        {result.hours > 0 ? `${result.hours} giờ` : ""}{" "}
+                        {result.minutes > 0 ? `${result.minutes} phút` : ""} (
+                        {result.totalMinutes} phút)
+                    </p>
+                    <p>
+                        <strong>Giờ đầu:</strong>{" "}
+                        {result.firstHourPrice.toLocaleString()} VND
+                    </p>
+                    <p>
+                        <strong>Giờ tiếp theo:</strong> {result.remainingHours}{" "}
+                        giờ →{" "}
+                        {(
+                            result.remainingHours * result.nextHourPrice
+                        ).toLocaleString()}{" "}
+                        VND
+                    </p>
+                    <p className="font-bold text-lg">
+                        Tổng: {result.total.toLocaleString()} VND
+                    </p>
+                </div>
+            )}
+        </main>
+    );
 }
