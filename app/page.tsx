@@ -13,6 +13,8 @@ export default function HomePage() {
         nextHourPrice: number;
         remainingHours: number;
         total: number;
+        fullPrice: number;
+        shouldRoundDown: boolean;
     }>(null);
 
     const getCurrentTimeString = () => {
@@ -66,15 +68,20 @@ export default function HomePage() {
         }
 
         const duration = end - start;
-
         const hours = Math.floor(duration / 60);
         const minutes = duration % 60;
-
         const totalHoursForPricing = Math.ceil(duration / 60);
+        const shouldRoundDown = minutes <= 10;
+        const effectiveHours = shouldRoundDown ? hours : totalHoursForPricing;
+
         const firstHourPrice = isAirConditioned ? 50000 : 40000;
         const nextHourPrice = isAirConditioned ? 15000 : 10000;
-        const remainingHours = Math.max(0, totalHoursForPricing - 1);
+        const remainingHours = Math.max(0, effectiveHours - 1);
         const total = firstHourPrice + remainingHours * nextHourPrice;
+
+        const fullPrice =
+            firstHourPrice +
+            Math.max(0, totalHoursForPricing - 1) * nextHourPrice;
 
         setResult({
             totalMinutes: duration,
@@ -84,6 +91,8 @@ export default function HomePage() {
             nextHourPrice,
             remainingHours,
             total,
+            fullPrice,
+            shouldRoundDown,
         });
     };
 
@@ -172,6 +181,15 @@ export default function HomePage() {
                     <p className="font-bold text-lg">
                         Tổng: {result.total.toLocaleString()} VND
                     </p>
+
+                    {result.shouldRoundDown && result.remainingHours > 0 && (
+                        <p className="text-red-600 font-medium">
+                            Đã bỏ qua tiếng cuối cùng do chỉ có {result.minutes}{" "}
+                            phút. Tổng tiền nếu tính đủ{" "}
+                            {Math.ceil(result.totalMinutes / 60)} giờ sẽ là{" "}
+                            {result.fullPrice.toLocaleString()} VND.
+                        </p>
+                    )}
                 </div>
             )}
         </main>
